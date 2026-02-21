@@ -1,11 +1,11 @@
+/* ✅ Les @import EN PREMIER, avant tout le reste */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'katex/dist/katex.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Importer les polices */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Styles de base */
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -18,10 +18,9 @@
   }
 }
 
-/* Composants réutilisables */
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 outline-none focus:outline-none focus:ring-2 focus:ring-offset-2; /* ✅ @apply à la place du CSS invalide */
   }
   
   .btn-primary {
@@ -57,7 +56,6 @@
   }
 }
 
-/* Styles pour KaTeX */
 @layer utilities {
   .katex-display {
     @apply text-center my-6 text-lg leading-relaxed;

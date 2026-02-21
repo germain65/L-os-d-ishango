@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthenticatedGet, useAuthenticatedPost } from '@/hooks/useAuthenticatedApi';
 import { QuestionType, Categorie } from '@prisma/client';
+import KatexRenderer from '@/components/KatexRenderer';
 
 // Types pour l'exercice
 interface Question {
@@ -23,6 +25,7 @@ interface AttemptResponse {
   points: number;
   solution?: string;
   explication?: string;
+  type?: QuestionType;
 }
 
 export default function ExercicePage() {
@@ -241,11 +244,13 @@ export default function ExercicePage() {
               <div className="bg-white rounded-lg p-6 border border-gris-200">
                 <div className="prose max-w-none">
                   {question.type === QuestionType.LATEX ? (
-                    <div className="text-lg font-mono text-gris-800 leading-relaxed">
-                      {question.enonce}
-                    </div>
+                    <KatexRenderer 
+                      expression={question.enonce}
+                      displayMode="display"
+                      className="text-lg text-gray-800"
+                    />
                   ) : (
-                    <p className="text-lg text-gris-800 leading-relaxed">
+                    <p className="text-lg text-gray-800 leading-relaxed">
                       {question.enonce}
                     </p>
                   )}
@@ -289,10 +294,20 @@ export default function ExercicePage() {
                       {result.explication}
                     </p>
                     {result.solution && (
-                      <div className="mt-4 p-4 bg-white rounded border border-gris-200">
-                        <p className="text-small text-gris-600 mb-2">Solution correcte :</p>
-                        <div className="text-body font-mono text-gris-800">
-                          {result.solution}
+                      <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-small text-blue-600 mb-2">Solution correcte :</p>
+                        <div className="text-lg font-mono text-blue-800">
+                          {result.type && result.type === QuestionType.LATEX ? (
+                            <KatexRenderer 
+                              expression={result.solution}
+                              displayMode="display"
+                              className="text-lg text-blue-800"
+                            />
+                          ) : (
+                            <span className="text-lg font-mono text-blue-800">
+                              {result.solution}
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
