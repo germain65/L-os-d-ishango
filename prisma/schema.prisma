@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PARTICIPANT
+}
+
+enum Categorie {
+  LYCEE
+  PREPA
+  UNIVERSITE
+}
+
+enum QuestionType {
+  NUMERIQUE
+  LATEX
+  QCM
+}
+
+enum PhaseType {
+  ELIMINATOIRE
+  QUARTS
+  DEMIS
+  FINALE
+}
+
+enum CompetitionStatut {
+  BROUILLON
+  OUVERTE
+  EN_COURS
+  TERMINEE
+  ARCHIVEE
+}
+
+enum SessionStatut {
+  EN_COURS
+  TERMINEE
+  ABANDON
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  pseudo        String   @unique
+  passwordHash  String
+  categorie     Categorie
+  role          Role     @default(PARTICIPANT)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  sessions      CompetitionSession[]
+  
+  @@map("users")
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  enonce     String   // LaTeX/Markdown
+  solution   String   // LaTeX/Markdown
+  type       QuestionType
+  theme      String
+  niveau     Categorie
+  difficulte Int      // 1 à 5
+  options    Json?    // pour QCM
+  tolerance  Float?   // pour numérique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  phaseQuestions PhaseQuestion[]
+  
+  @@map("questions")
+}
+
+model Competition {
+  id          String   @id @default(cuid())
+  titre       String
+  description String?
+  statut      CompetitionStatut @default(BROUILLON)
+  categorie   Categorie
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  startsAt    DateTime
+  endsAt      DateTime
+  
+  // Relations
+  phases      Phase[]
+  sessions    CompetitionSession[]
+  
+  @@map("competitions")
+}
+
+model Phase {
+  id            String   @id @default(cuid())
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competitionId String
+  type          PhaseType
+  ordre         Int
+  dureeParQuestion Int  // en secondes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  questions     PhaseQuestion[]
+  
+  @@unique([competitionId, type])
+  @@map("phases")
+}
+
+model PhaseQuestion {
+  id         String @id @default(cuid())
+  phase      Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  phaseId    String
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+  ordre      Int
+  createdAt  DateTime @default(now())
+  
+  @@unique([phaseId, questionId])
+  @@map("phase_questions")
+}
+
+model CompetitionSession {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competitionId String
+  phaseActuelle PhaseType
+  startedAt     DateTime @default(now())
+  endedAt       DateTime?
+  statut        SessionStatut @default(EN_COURS)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  submissions   Submission[]
+  
+  @@unique([userId, competitionId])
+  @@map("competition_sessions")
+}
+
+model Submission {
+  id         String   @id @default(cuid())
+  session    CompetitionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId  String
+  questionId String
+  reponse    String?
+  correct    Boolean?
+  points     Int      @default(0)
+  tempsMs    Int      // temps de réponse en millisecondes
+  soumisAt   DateTime @default(now())
+  
+  @@unique([sessionId, questionId])
+  @@map("submissions")
+}
