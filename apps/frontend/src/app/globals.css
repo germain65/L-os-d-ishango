@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Importer les polices */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Styles de base */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Composants réutilisables */
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-bleu-nuit-600 text-white hover:bg-bleu-nuit-700 focus:ring-bleu-nuit-500 transform hover:-translate-y-0.5;
+  }
+  
+  .btn-secondary {
+    @apply bg-or-500 text-gris-900 hover:bg-or-600 focus:ring-or-400;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-bleu-nuit-600 text-bleu-nuit-600 hover:bg-bleu-nuit-600 hover:text-white focus:ring-bleu-nuit-500;
+  }
+  
+  .card {
+    @apply bg-white border border-gris-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 border border-gris-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bleu-nuit-500 focus:border-transparent transition-colors duration-200;
+  }
+  
+  .input-error {
+    @apply border-erreur focus:ring-erreur;
+  }
+  
+  .text-error {
+    @apply text-erreur text-sm mt-1;
+  }
+  
+  .container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Styles pour KaTeX */
+@layer utilities {
+  .katex-display {
+    @apply text-center my-6 text-math-display;
+  }
+  
+  .katex {
+    @apply text-gris-800 text-math-inline;
+  }
+}
