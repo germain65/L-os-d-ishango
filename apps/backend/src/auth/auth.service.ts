@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { EmailTokenService } from './email-token.service';
+import { RefreshTokenService } from './refresh-token.service';
 import { User, Categorie, Role } from '@prisma/client';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private emailService: EmailService,
     private emailTokenService: EmailTokenService,
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<{ message: string }> {
@@ -62,7 +64,11 @@ export class AuthService {
     return { message: 'Utilisateur créé avec succès. Un email de vérification a été envoyé.' };
   }
 
-  async login(email: string, password: string): Promise<{ accessToken: string; user: Omit<User, 'passwordHash'> }> {
+  async login(email: string, password: string): Promise<{ 
+  accessToken: string; 
+  refreshToken: string; 
+  user: Omit<User, 'passwordHash'> 
+}> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
@@ -77,8 +83,9 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = this.jwtService.sign(payload);
+    const refreshToken = await this.refreshTokenService.generateRefreshToken(user);
 
-    return { accessToken, user: userWithoutPassword };
+    return { accessToken, refreshToken, user: userWithoutPassword };
   }
 
   async validateUser(payload: { sub: string; email: string }): Promise<Omit<User, 'passwordHash'> | null> {
@@ -130,5 +137,31 @@ export class AuthService {
     await this.emailTokenService.invalidatePasswordResetToken(token);
 
     return { message: 'Mot de passe réinitialisé avec succès' };
+  }
+
+  async refreshToken(refreshTokenString: string): Promise<{ 
+    accessToken: string; 
+    refreshToken: string; 
+  }> {
+    const user = await this.refreshTokenService.verifyRefreshToken(refreshTokenString);
+    if (!user) {
+      throw new UnauthorizedException('Refresh token invalide ou expiré');
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
+    const newRefreshToken = await this.refreshTokenService.generateRefreshToken(user);
+
+    return { accessToken, refreshToken: newRefreshToken };
+  }
+
+  async logout(refreshTokenString: string): Promise<{ message: string }> {
+    await this.refreshTokenService.revokeRefreshToken(refreshTokenString);
+    return { message: 'Déconnexion réussie' };
+  }
+
+  async logoutAll(userId: string): Promise<{ message: string }> {
+    await this.refreshTokenService.revokeAllUserTokens(userId);
+    return { message: 'Déconnexion de tous les appareils réussie' };
   }
 }

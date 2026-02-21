@@ -5,6 +5,10 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { LogoutDto } from './dto/logout.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -38,5 +42,23 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body(ValidationPipe) resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto.token, resetPasswordDto.password);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(@Body(ValidationPipe) refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Body(ValidationPipe) logoutDto: LogoutDto, @CurrentUser() user?: User) {
+    if (logoutDto.logoutAll === 'true' && user) {
+      return this.authService.logoutAll(user.id);
+    }
+    if (logoutDto.refreshToken) {
+      return this.authService.logout(logoutDto.refreshToken);
+    }
+    return { message: 'Déconnexion réussie' };
   }
 }

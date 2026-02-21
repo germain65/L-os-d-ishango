@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailModule } from '../email/email.module';
 import { EmailTokenService } from './email-token.service';
+import { RefreshTokenService } from './refresh-token.service';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { EmailTokenService } from './email-token.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, EmailTokenService],
+  providers: [AuthService, JwtStrategy, EmailTokenService, RefreshTokenService],
   exports: [AuthService],
 })
 export class AuthModule {}

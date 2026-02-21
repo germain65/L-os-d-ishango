@@ -70,6 +70,17 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@map("refresh_tokens")
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -85,6 +96,7 @@ model User {
   sessions      CompetitionSession[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens     PasswordResetToken[]
+  refreshTokens           RefreshToken[]
   
   @@map("users")
 }
